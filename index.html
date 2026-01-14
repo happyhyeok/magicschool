@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <title>MagicSchool</title>
+    <style>
+        body, html {
+            touch-action: none;
+            margin: 0;
+            border: 0 none;
+            padding: 0;
+            text-align: center;
+            background-color: black;
+            
+            /* 중앙 정렬 핵심 코드 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden; /* 스크롤바 방지 */
+        }
+
+        #canvas {
+            display: block;
+            margin: 0;
+            color: white;
+        }
+
+        #canvas:focus {
+            outline: none;
+        }
+
+        /* 상태 표시줄 등의 기본 스타일 */
+        .godot {
+            font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
+            color: #e0e0e0;
+            background-color: #3b3943;
+            background-image: linear-gradient(to bottom, #403e48, #35333c);
+            border: 1px solid #45434e;
+            box-shadow: 0 0 1px 1px #2f2d35;
+        }
+    </style>
+    <link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
+<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
+
+</head>
+<body>
+    <canvas id="canvas">
+        HTML5 canvas appears to be unsupported in the current browser.<br >
+        Please try updating or use a different browser.
+    </canvas>
+    $GODOT_BODY_INCLUDE
+    
+    <script>
+        // 엔진 시작 스크립트
+        var engine = new Engine({"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":25131516,"index.wasm":38034280},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4});
+
+        (function() {
+            const INDETERMINATE_STATUS_STEP_MS = 100;
+            var canvas = document.getElementById('canvas');
+            var statusProgress = document.getElementById('status-progress');
+            var statusProgressInner = document.getElementById('status-progress-inner');
+            var statusIndeterminate = document.getElementById('status-indeterminate');
+            var statusNotice = document.getElementById('status-notice');
+
+            var initializing = true;
+            var statusMode = 'hidden';
+
+            var animationCallbacks = [];
+            function animate(time) {
+                animationCallbacks.forEach(callback => callback(time));
+                requestAnimationFrame(animate);
+            }
+            requestAnimationFrame(animate);
+
+            function startGame() {
+                engine.startGame({ onProgress: function(current, total) {
+                    if (total > 0) {
+                        statusProgressInner.style.width = current/total * 100 + '%';
+                        statusMode = 'progress';
+                        if (current === total) {
+                            // wait for progress bar animation
+                            setTimeout(() => {
+                                statusMode = 'indeterminate';
+                            }, 500);
+                        }
+                    } else {
+                        statusMode = 'indeterminate';
+                    }
+                }}).then(() => {
+                    statusMode = 'hidden';
+                    initializing = false;
+                }, (err) => {
+                    console.error("Error starting game:", err);
+                });
+            }
+            startGame();
+        })();
+    </script>
+</body>
+</html>
